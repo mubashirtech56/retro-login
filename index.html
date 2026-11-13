@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RETRO-NET Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#000000; --fg:#ffb000; --dim:#8a5f00; --hi:#ffd36b; --err:#ff5a3c; --ok:#7dff8a;
+  --font:'VT323','Courier New',Courier,monospace;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{color-scheme:dark;background:var(--bg)}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--fg);font-family:var(--font);font-size:22px;line-height:1.25;display:flex;align-items:center;justify-content:center;padding:20px}
+body::after{content:"";position:fixed;inset:0;pointer-events:none;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0) 0,rgba(0,0,0,0) 2px,rgba(0,0,0,.35) 3px);z-index:5}
+.term{width:100%;max-width:560px;border:2px solid var(--fg);padding:20px 24px 16px;text-shadow:0 0 6px rgba(255,176,0,.55);box-shadow:0 0 24px rgba(255,176,0,.18)}
+h1{margin:0 0 4px;font-weight:400;font-size:40px;letter-spacing:2px;color:var(--hi)}
+.boot{min-height:5.2em;color:var(--dim);margin:0 0 14px;white-space:pre-wrap}
+.tabs{display:flex;border-bottom:2px solid var(--fg);margin-bottom:18px}
+.tabs button{flex:1;font:inherit;color:var(--fg);background:none;border:0;padding:6px 0;cursor:pointer;text-shadow:inherit}
+.tabs button[aria-selected="true"]{background:var(--fg);color:var(--bg);text-shadow:none}
+.tabs button:hover:not([aria-selected="true"]){color:var(--hi)}
+:focus-visible{outline:2px dashed var(--hi);outline-offset:3px}
+form{display:grid;gap:14px}
+label{display:block;color:var(--dim)}
+.row{display:flex;align-items:center;gap:8px;border-bottom:1px dashed var(--dim)}
+.row:focus-within{border-bottom-color:var(--fg)}
+.row span{color:var(--fg)}
+input{flex:1;min-width:0;font:inherit;color:var(--hi);background:transparent;border:0;padding:4px 0;caret-color:var(--fg);caret-shape:block;text-shadow:inherit}
+input:focus{outline:none}
+input::placeholder{color:#4a3500}
+.peek{font:inherit;font-size:18px;background:none;border:1px solid var(--dim);color:var(--dim);cursor:pointer;padding:0 6px}
+.peek:hover{color:var(--fg);border-color:var(--fg)}
+.meter{color:var(--dim);font-size:18px;margin-top:2px}
+.go{font:inherit;font-size:26px;color:var(--bg);background:var(--fg);border:0;padding:6px 0;cursor:pointer;text-shadow:none;margin-top:4px}
+.go:hover{background:var(--hi)}
+.go:disabled{background:var(--dim);cursor:wait}
+.status{min-height:2.6em;margin-top:14px;color:var(--dim)}
+.status.err{color:var(--err)} .status.ok{color:var(--ok)}
+.cur{display:inline-block;width:.6em;height:1em;background:var(--fg);vertical-align:-2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hide{display:none}
+.welcome p{margin:6px 0}
+.foot{border-top:1px solid var(--dim);margin-top:14px;padding-top:8px;color:var(--dim);font-size:17px}
+@media (prefers-reduced-motion:reduce){.cur{animation:none}}
+@media (max-width:420px){body{font-size:20px;padding:10px}.term{padding:14px}h1{font-size:32px}}
+</style>
+</head>
+<body>
+<main class="term">
+  <h1>RETRO-NET</h1>
+  <p class="boot" id="boot" aria-hidden="true"></p>
+
+  <div id="auth">
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-login" aria-selected="true" aria-controls="f-login">[ Log in ]</button>
+      <button role="tab" id="tab-reg" aria-selected="false" aria-controls="f-reg">[ Create account ]</button>
+    </div>
+
+    <form id="f-login" role="tabpanel" aria-labelledby="tab-login" novalidate>
+      <div><label for="l-mail">Email</label>
+        <div class="row"><span>&gt;</span><input id="l-mail" type="email" autocomplete="username" autocapitalize="none" spellcheck="false"></div></div>
+      <div><label for="l-pass">Password</label>
+        <div class="row"><span>&gt;</span><input id="l-pass" type="password" autocomplete="current-password">
+        <button type="button" class="peek" data-for="l-pass" aria-label="Show password">show</button></div></div>
+      <button class="go" type="submit">Log in</button>
+    </form>
+
+    <form id="f-reg" class="hide" role="tabpanel" aria-labelledby="tab-reg" novalidate>
+      <div><label for="r-user">Choose a username</label>
+        <div class="row"><span>&gt;</span><input id="r-user" autocomplete="nickname" autocapitalize="none" spellcheck="false" placeholder="3–16 letters or digits"></div></div>
+      <div><label for="r-mail">Email</label>
+        <div class="row"><span>&gt;</span><input id="r-mail" type="email" autocomplete="email" spellcheck="false"></div></div>
+      <div><label for="r-pass">Password</label>
+        <div class="row"><span>&gt;</span><input id="r-pass" type="password" autocomplete="new-password" placeholder="8 or more characters">
+        <button type="button" class="peek" data-for="r-pass" aria-label="Show password">show</button></div>
+        <div class="meter" id="meter" aria-live="polite">Strength: [░░░░░]</div></div>
+      <div><label for="r-pass2">Repeat password</label>
+        <div class="row"><span>&gt;</span><input id="r-pass2" type="password" autocomplete="new-password"></div></div>
+      <button class="go" type="submit">Create account</button>
+    </form>
+
+    <div class="status" id="status" role="status" aria-live="polite"></div>
+  </div>
+
+  <section id="welcome" class="welcome hide" aria-live="polite">
+    <p id="w-line"></p>
+    <p style="color:var(--dim);white-space:pre-wrap" id="w-meta"></p>
+    <button class="go" id="logout" style="width:100%;margin-top:14px">Log out</button>
+  </section>
+
+  <div class="foot">Secure sign-in by Supabase.<span class="cur" style="margin-left:6px"></span></div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.0/dist/umd/supabase.js"></script>
+<script>
+/* ============ STEP 1: PASTE YOUR SUPABASE VALUES HERE ============ */
+var SUPABASE_URL = 'https://pnbzywrlyuwfuvsnyvso.supabase.co/rest/v1/';       // looks like https://abcdxyz.supabase.co
+var SUPABASE_KEY = 'sb_publishable_oKFDk4DxPDQRjBq9J5IUtQ_GD-_j2RT';
+/* ================================================================= */
+
+(function(){
+  var $=function(id){return document.getElementById(id)};
+  var st=$('status');
+  function say(msg,kind){st.className='status'+(kind?' '+kind:'');st.textContent=msg}
+
+  var ready = SUPABASE_URL.indexOf('PASTE_')!==0 && SUPABASE_KEY.indexOf('PASTE_')!==0 && window.supabase;
+  var sb = ready ? window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY) : null;
+  if(!ready) say('SETUP NEEDED: add your Supabase URL and key at the top of the script.','err');
+
+  /* boot sequence */
+  var lines=['RETRO-NET BBS v1.986','Memory check ... 640K OK','Modem connected at 2400 baud','Please identify yourself.'];
+  var boot=$('boot'),reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){boot.textContent=lines.join('\n')}
+  else{
+    var li=0,ci=0;
+    (function tick(){
+      if(li>=lines.length)return;
+      boot.textContent=lines.slice(0,li).join('\n')+(li?'\n':'')+lines[li].slice(0,++ci);
+      if(ci>=lines[li].length){li++;ci=0;setTimeout(tick,260)}else setTimeout(tick,22);
+    })();
+  }
+
+  /* tabs */
+  function show(which){
+    var login=which==='login';
+    $('f-login').classList.toggle('hide',!login);
+    $('f-reg').classList.toggle('hide',login);
+    $('tab-login').setAttribute('aria-selected',login);
+    $('tab-reg').setAttribute('aria-selected',!login);
+    if(ready)say('');
+    (login?$('l-mail'):$('r-user')).focus();
+  }
+  $('tab-login').onclick=function(){show('login')};
+  $('tab-reg').onclick=function(){show('reg')};
+
+  /* show/hide password */
+  document.querySelectorAll('.peek').forEach(function(b){
+    b.onclick=function(){
+      var i=$(b.dataset.for),h=i.type==='password';
+      i.type=h?'text':'password';b.textContent=h?'hide':'show';
+      b.setAttribute('aria-label',h?'Hide password':'Show password');
+    };
+  });
+
+  /* strength meter */
+  function score(p){
+    var s=0;if(p.length>=8)s++;if(p.length>=12)s++;
+    if(/[a-z]/.test(p)&&/[A-Z]/.test(p))s++;
+    if(/\d/.test(p))s++;if(/[^A-Za-z0-9]/.test(p))s++;
+    return s;
+  }
+  $('r-pass').addEventListener('input',function(){
+    var n=score(this.value),w=['too short','weak','fair','good','strong','excellent'][n];
+    $('meter').textContent='Strength: ['+'▓'.repeat(n)+'░'.repeat(5-n)+'] '+(this.value?w:'');
+  });
+
+  /* create account */
+  $('f-reg').addEventListener('submit',async function(e){
+    e.preventDefault();
+    if(!ready)return say('SETUP NEEDED: add your Supabase URL and key first.','err');
+    var u=$('r-user').value.trim(),m=$('r-mail').value.trim(),p=$('r-pass').value,p2=$('r-pass2').value;
+    if(!/^[A-Za-z0-9]{3,16}$/.test(u))return say('ERROR: username must be 3–16 letters or digits.','err');
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(m))return say('ERROR: enter a valid email address.','err');
+    if(p.length<8)return say('ERROR: password needs at least 8 characters.','err');
+    if(p!==p2)return say('ERROR: passwords do not match.','err');
+    var btn=this.querySelector('.go');btn.disabled=true;say('Creating account...');
+    var res=await sb.auth.signUp({
+      email:m,password:p,
+      options:{data:{username:u},emailRedirectTo:location.origin+location.pathname}
+    });
+    btn.disabled=false;
+    if(res.error)return say('ERROR: '+res.error.message,'err');
+    var user=res.data.user;
+    if(user&&user.identities&&user.identities.length===0)
+      return say('ERROR: that email already has an account. Try logging in.','err');
+    this.reset();$('meter').textContent='Strength: [░░░░░]';
+    if(res.data.session)return; /* signed in right away: auth listener shows welcome */
+    show('login');
+    say('Account created. Check your email and click the confirmation link, then log in.','ok');
+  });
+
+  /* log in */
+  var fails=0,lockUntil=0;
+  $('f-login').addEventListener('submit',async function(e){
+    e.preventDefault();
+    if(!ready)return say('SETUP NEEDED: add your Supabase URL and key first.','err');
+    if(Date.now()<lockUntil)return say('Too many attempts. Wait '+Math.ceil((lockUntil-Date.now())/1000)+'s.','err');
+    var m=$('l-mail').value.trim(),p=$('l-pass').value;
+    if(!m||!p)return say('ERROR: enter your email and password.','err');
+    var btn=this.querySelector('.go');btn.disabled=true;say('Checking credentials...');
+    var res=await sb.auth.signInWithPassword({email:m,password:p});
+    btn.disabled=false;
+    if(res.error){
+      if(/confirm/i.test(res.error.message))return say('Confirm your email first: check your inbox for the link.','err');
+      if(++fails>=3){fails=0;lockUntil=Date.now()+10000;return say('ACCESS DENIED. Locked for 10 seconds.','err')}
+      return say('ACCESS DENIED. '+res.error.message+'.','err');
+    }
+    fails=0;this.reset();
+  });
+
+  /* welcome view */
+  function enter(user){
+    $('auth').classList.add('hide');$('welcome').classList.remove('hide');
+    var name=(user.user_metadata&&user.user_metadata.username)||user.email;
+    $('w-line').textContent='Login successful. Welcome, '+name+'.';
+    $('w-meta').textContent=user.email+'\nMember since '+(user.created_at||'').slice(0,10);
+    $('logout').focus();
+  }
+  function leave(){
+    $('welcome').classList.add('hide');$('auth').classList.remove('hide');
+  }
+  $('logout').onclick=async function(){
+    await sb.auth.signOut();
+    show('login');say('Logged out. Connection closed.','ok');
+  };
+
+  if(ready){
+    sb.auth.getSession().then(function(r){if(r.data.session)enter(r.data.session.user)});
+    sb.auth.onAuthStateChange(function(ev,session){
+      if(session&&session.user)enter(session.user);else leave();
+    });
+  }
+})();
+</script>
+</body>
+</html>
